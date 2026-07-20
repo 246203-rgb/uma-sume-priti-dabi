@@ -3,224 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Herencia - Umamusume</title>
+    <title>Calculadora de Herencia - Uma Musume</title>
     <style>
-        :root {
-            --primary: #ff76a5;
-            --secondary: #ff4785;
-            --bg: #f8f9fa;
-            --text: #333;
-        }
+        /* Estilos básicos para que parezca una herramienta profesional */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-        h1 {
-            color: var(--secondary);
-            margin-bottom: 5px;
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
         }
-        p.subtitle {
-            color: #666;
-            margin-bottom: 30px;
-        }
-        .card {
-            background: white;
+        .contenedor {
+            background-color: #fff;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
         .form-group {
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
         }
         label {
-            display: block;
-            margin-bottom: 8px;
             font-weight: bold;
+            margin-bottom: 8px;
+            color: #34495e;
         }
-        input, select {
-            width: 100%;
+        select, input {
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
+            border-radius: 5px;
+            font-size: 14px;
         }
         button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary);
+            grid-column: span 2;
+            padding: 15px;
+            background-color: #27ae60;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         }
         button:hover {
-            background-color: var(--secondary);
+            background-color: #2ecc71;
         }
-        #loading {
-            display: none;
-            text-align: center;
-            font-weight: bold;
-            color: var(--secondary);
-            margin: 20px 0;
+        #resultados {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            border-left: 5px solid #3498db;
+            display: none; /* Oculto hasta que haya resultados */
         }
-        .resultado-item {
-            background: #fff;
-            border-left: 5px solid var(--primary);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            width: 100%;
-            max-width: 600px;
-        }
-        .resultado-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .badge {
-            background-color: var(--primary);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .aportes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-        }
-        .aporte-tag {
-            background: #f0f0f0;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            text-align: center;
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
 
-    <h1>🐎 Calculadora de Herencia</h1>
-    <p class="subtitle">Encuentra los mejores padres para tu Umamusume</p>
-
-    <div class="card">
-        <form id="calcForm">
-            <div class="form-group">
-                <label for="umaInput">Nombre de tu Umamusume (Ej: Oguri Cap)</label>
-                <input type="text" id="umaInput" placeholder="Escribe el nombre en inglés o romaji..." required>
-            </div>
-            
-            <div class="form-group">
-                <label for="carreraInput">Objetivo Principal (Aptitud a mejorar)</label>
-                <select id="carreraInput">
-                    <option value="dirt">Tierra (Dirt)</option>
-                    <option value="turf">Césped (Turf)</option>
-                </select>
-            </div>
-
-            <button type="submit">Buscar Mejores Padres</button>
-        </form>
-    </div>
-
-    <div id="loading">Buscando en la base de datos de Uma.moe... ⏳</div>
+    <h1>Calculadora de Herencia Óptima</h1>
     
-    <div id="resultadosContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <!-- Los resultados se inyectarán aquí -->
+    <div class="contenedor">
+        <form id="formulario-herencia">
+            <div class="form-grid">
+                
+                <div class="form-group" style="grid-column: span 2;">
+                    <label for="uma_id">Selecciona tu Umamusume:</label>
+                    <select id="uma_id" name="uma_id" required>
+                        <option value="">Cargando Umamusumes...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="racetrack">Pista / Hipódromo:</label>
+                    <select id="racetrack" required>
+                        <option value="">Cargando pistas...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="terrain">Superficie (Terreno):</label>
+                    <select id="terrain" required>
+                        <option value="">Cargando terrenos...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="direction">Dirección:</label>
+                    <select id="direction" required>
+                        <option value="">Cargando direcciones...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="length_type">Tipo de Distancia:</label>
+                    <select id="length_type" required>
+                        <option value="">Cargando tipos...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="length">Distancia (metros):</label>
+                    <select id="length" required>
+                        <option value="">Cargando distancias...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="estrategia">Estrategia a usar:</label>
+                    <select id="estrategia" required>
+                        <option value="Front Runner">Front Runner (Runner / Nige)</option>
+                        <option value="Pace Chaser">Pace Chaser (Leader / Senkou)</option>
+                        <option value="Late Surger">Late Surger (Betweener / Sashi)</option>
+                        <option value="End Closer">End Closer (Chaser / Oikomi)</option>
+                    </select>
+                </div>
+
+                <button type="submit">Calcular Mejores Padres</button>
+            </div>
+        </form>
+
+        <div id="resultados">
+            <h2>Resultados del Análisis</h2>
+            <pre id="json-resultados"></pre>
+        </div>
     </div>
 
     <script>
-        const dicAportes = {
-            "10": "Speed 🏃", "20": "Stamina 💖", "30": "Power 💪", "40": "Guts 🔥", "50": "Wit 🧠",
-            "110": "Turf 🌿", "120": "Dirt 🟤", "210": "Runner 🏃‍♂️", "220": "Leader 🚶‍♂️",
-            "230": "Betweener 🚶‍♀️", "240": "Chaser 🏃‍♀️", "310": "Sprint ⚡", "320": "Mile 📏",
-            "330": "Medium 🛣️", "340": "Long 🛤️"
-        };
-
-        document.getElementById('calcForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const uma = document.getElementById('umaInput').value.trim();
-            const carrera = document.getElementById('carreraInput').value;
-            const loading = document.getElementById('loading');
-            const resultadosCont = document.getElementById('resultadosContainer');
-            
-            resultadosCont.innerHTML = '';
-            loading.style.display = 'block';
-
+    // ==========================================
+        // ESTE ES EL PASO 1 (EL QUE SÍ CAMBIA)
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", async () => {
             try {
-                const response = await fetch('/calcular', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uma, carrera })
-                });
+                const respuesta = await fetch('/api/opciones_carrera');
+                const datos = await respuesta.json();
 
-                if (!response.ok) {
-                    throw new Error(`Error en el servidor: ${response.status}`);
+                // Función auxiliar para llenar los menús <select>
+                const llenarMenu = (idElemento, opciones) => {
+                    const select = document.getElementById(idElemento);
+                    select.innerHTML = ''; // Limpiamos el "Cargando..."
+                    opciones.forEach(opcion => {
+                        const opt = document.createElement('option');
+                        opt.value = opcion;
+                        opt.textContent = opcion;
+                        select.appendChild(opt);
+                    });
+                };
+
+                // NUEVO: Llenamos el menú de Umamusumes
+                const selectUma = document.getElementById('uma_id');
+                selectUma.innerHTML = '<option value="">-- Selecciona una Umamusume --</option>';
+                
+                if (datos.umas) {
+                    datos.umas.sort((a, b) => a.nombre.localeCompare(b.nombre)); // Orden alfabético
+                    datos.umas.forEach(uma => {
+                        const opt = document.createElement('option');
+                        opt.value = uma.id;
+                        opt.textContent = `${uma.nombre} (ID: ${uma.id})`;
+                        selectUma.appendChild(opt);
+                    });
                 }
 
-                const data = await response.json();
-                loading.style.display = 'none';
-
-                if (data.error) {
-                    resultadosCont.innerHTML = `<p style="color: red; font-weight: bold;">⚠️ Error: ${data.error}</p>`;
-                    return;
-                }
-
-                if (!data.resultados || data.resultados.length === 0) {
-                    resultadosCont.innerHTML = `<p>No se encontraron padres que cumplan con los requisitos actuales en las páginas consultadas.</p>`;
-                    return;
-                }
-
-                data.resultados.forEach(res => {
-                    let aportesHtml = '';
-                    for (const [id, estrellas] of Object.entries(res.aportes)) {
-                        const nombreAporte = dicAportes[id] || `ID ${id}`;
-                        const estrellasVisuales = typeof estrellas === 'number' ? '★'.repeat(estrellas) : `${estrellas}★`;
-                        aportesHtml += `<div class="aporte-tag"><b>${nombreAporte}</b>: ${estrellasVisuales}</div>`;
-                    }
-
-                    const cardHtml = `
-                        <div class="resultado-item">
-                            <div class="resultado-header">
-                                <div>
-                                    <span class="badge">Top ${res.posicion}</span>
-                                    <strong>Entrenador:</strong> ${res.entrenador}
-                                </div>
-                                <div style="color: var(--secondary); font-weight: bold;">
-                                    Puntaje: ${res.puntaje} pts
-                                </div>
-                            </div>
-                            <div style="font-size: 13px; color: #666; margin-bottom: 10px;">ID de Cuenta: ${res.id}</div>
-                            <div class="aportes-grid">
-                                ${aportesHtml}
-                            </div>
-                        </div>
-                    `;
-                    resultadosCont.insertAdjacentHTML('beforeend', cardHtml);
-                });
+                // Llenamos todos los desplegables con las listas limpias del CSV
+                llenarMenu('racetrack', datos.racetracks);
+                llenarMenu('terrain', datos.terrains);
+                llenarMenu('direction', datos.directions);
+                llenarMenu('length_type', datos.length_types);
+                llenarMenu('length', datos.lengths);
 
             } catch (error) {
-                loading.style.display = 'none';
-                resultadosCont.innerHTML = `<p style="color: red; font-weight: bold;">❌ Error de conexión o proceso con el servidor local.</p>`;
-                console.error(error);
+                console.error("Error al cargar las opciones:", error);
+                alert("Hubo un problema al cargar los datos base.");
+            }
+        });
+
+        // ==========================================
+        // ESTE ES EL PASO 2 (SE QUEDA EXACTAMENTE IGUAL)
+        // ==========================================
+        document.getElementById('formulario-herencia').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita que la página recargue
+
+            // Recopilamos la selección del usuario
+            const payload = {
+                uma_id: document.getElementById('uma_id').value,
+                racetrack: document.getElementById('racetrack').value,
+                terrain: document.getElementById('terrain').value,
+                direction: document.getElementById('direction').value,
+                length_type: document.getElementById('length_type').value,
+                length: document.getElementById('length').value,
+                estrategia: document.getElementById('estrategia').value
+            };
+
+            // Cambiamos el texto del botón temporalmente
+            const boton = e.target.querySelector('button');
+            const textoOriginal = boton.textContent;
+            boton.textContent = "Calculando la genética perfecta...";
+            boton.disabled = true;
+
+            try {
+                const respuesta = await fetch('/calcular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const resultadoJson = await respuesta.json();
+                
+                // Mostramos la caja de resultados
+                const cajaResultados = document.getElementById('resultados');
+                cajaResultados.style.display = 'block';
+                
+                // Imprimimos el JSON bonito
+                document.getElementById('json-resultados').textContent = JSON.stringify(resultadoJson, null, 4);
+                
+            } catch (error) {
+                console.error("Error al calcular:", error);
+                alert("Error al procesar el cálculo en el servidor.");
+            } finally {
+                // Restauramos el botón
+                boton.textContent = textoOriginal;
+                boton.disabled = false;
             }
         });
     </script>
