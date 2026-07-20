@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Herencia - Umamusume</title>
+    <style>
+        :root {
+            --primary: #ff76a5;
+            --secondary: #ff4785;
+            --bg: #f8f9fa;
+            --text: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: var(--secondary);
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            font-weight: bold;
+            color: var(--secondary);
+            margin: 20px 0;
+        }
+        .resultado-item {
+            background: #fff;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 600px;
+        }
+        .resultado-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .badge {
+            background-color: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .aportes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .aporte-tag {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🐎 Calculadora de Herencia</h1>
+    <p class="subtitle">Encuentra los mejores padres para tu Umamusume</p>
+
+    <div class="card">
+        <form id="calcForm">
+            <div class="form-group">
+                <label for="umaInput">Nombre de tu Umamusume (Ej: Oguri Cap)</label>
+                <input type="text" id="umaInput" placeholder="Escribe el nombre en inglés o romaji..." required>
+            </div>
+            
+            <div class="form-group">
+                <label for="carreraInput">Objetivo Principal (Aptitud a mejorar)</label>
+                <select id="carreraInput">
+                    <option value="dirt">Tierra (Dirt)</option>
+                    <option value="turf">Césped (Turf)</option>
+                </select>
+            </div>
+
+            <button type="submit">Buscar Mejores Padres</button>
+        </form>
+    </div>
+
+    <div id="loading">Buscando en la base de datos de Uma.moe... ⏳</div>
+    
+    <div id="resultadosContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <!-- Los resultados se inyectarán aquí -->
+    </div>
+
+    <script>
+        const dicAportes = {
+            "10": "Speed 🏃", "20": "Stamina 💖", "30": "Power 💪", "40": "Guts 🔥", "50": "Wit 🧠",
+            "110": "Turf 🌿", "120": "Dirt 🟤", "210": "Runner 🏃‍♂️", "220": "Leader 🚶‍♂️",
+            "230": "Betweener 🚶‍♀️", "240": "Chaser 🏃‍♀️", "310": "Sprint ⚡", "320": "Mile 📏",
+            "330": "Medium 🛣️", "340": "Long 🛤️"
+        };
+
+        document.getElementById('calcForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const uma = document.getElementById('umaInput').value.trim();
+            const carrera = document.getElementById('carreraInput').value;
+            const loading = document.getElementById('loading');
+            const resultadosCont = document.getElementById('resultadosContainer');
+            
+            resultadosCont.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/calcular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uma, carrera })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error en el servidor: ${response.status}`);
+                }
+
+                const data = await response.json();
+                loading.style.display = 'none';
+
+                if (data.error) {
+                    resultadosCont.innerHTML = `<p style="color: red; font-weight: bold;">⚠️ Error: ${data.error}</p>`;
+                    return;
+                }
+
+                if (!data.resultados || data.resultados.length === 0) {
+                    resultadosCont.innerHTML = `<p>No se encontraron padres que cumplan con los requisitos actuales en las páginas consultadas.</p>`;
+                    return;
+                }
+
+                data.resultados.forEach(res => {
+                    let aportesHtml = '';
+                    for (const [id, estrellas] of Object.entries(res.aportes)) {
+                        const nombreAporte = dicAportes[id] || `ID ${id}`;
+                        const estrellasVisuales = typeof estrellas === 'number' ? '★'.repeat(estrellas) : `${estrellas}★`;
+                        aportesHtml += `<div class="aporte-tag"><b>${nombreAporte}</b>: ${estrellasVisuales}</div>`;
+                    }
+
+                    const cardHtml = `
+                        <div class="resultado-item">
+                            <div class="resultado-header">
+                                <div>
+                                    <span class="badge">Top ${res.posicion}</span>
+                                    <strong>Entrenador:</strong> ${res.entrenador}
+                                </div>
+                                <div style="color: var(--secondary); font-weight: bold;">
+                                    Puntaje: ${res.puntaje} pts
+                                </div>
+                            </div>
+                            <div style="font-size: 13px; color: #666; margin-bottom: 10px;">ID de Cuenta: ${res.id}</div>
+                            <div class="aportes-grid">
+                                ${aportesHtml}
+                            </div>
+                        </div>
+                    `;
+                    resultadosCont.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                loading.style.display = 'none';
+                resultadosCont.innerHTML = `<p style="color: red; font-weight: bold;">❌ Error de conexión o proceso con el servidor local.</p>`;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
