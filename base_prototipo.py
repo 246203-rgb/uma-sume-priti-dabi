@@ -42,6 +42,34 @@ class GrafoHerenciaUma:
         Ejemplo: {'10': 3, '120': 2}
         """
         return self.aristas.get(id_uma, {})
+    
+    def buscar_mejor_match(self, prioridades):
+        """
+        Evalúa todas las Umas en el grafo basándose en las prioridades calculadas por app.py.
+        Devuelve una lista ordenada de tuplas (id_cuenta, puntaje_total).
+        """
+        resultados = []
+        
+        # Iteramos sobre todas las cuentas y sus estrellas registradas en el grafo
+        for id_cuenta, rasgos_uma in self.aristas.items():
+            puntaje = 0
+            
+            # Comparamos los rasgos de la Uma con las prioridades requeridas
+            for rasgo_id, peso_requerido in prioridades.items():
+                # Obtenemos las estrellas que tiene la Uma en ese rasgo específico
+                estrellas_poseidas = rasgos_uma.get(rasgo_id, 0)
+                
+                # Multiplicamos las estrellas por la prioridad de la carrera
+                puntaje += estrellas_poseidas * peso_requerido
+                
+            # Solo guardamos las cuentas que aporten algún valor
+            if puntaje > 0:
+                resultados.append((id_cuenta, puntaje))
+                
+        # Ordenamos la lista de mayor a menor puntaje
+        resultados.sort(key=lambda x: x[1], reverse=True)
+        
+        return resultados
 
 def construir_grafo_desde_api(max_paginas=10):
     url = "https://uma.moe/api/v3/search"
