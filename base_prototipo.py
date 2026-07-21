@@ -46,7 +46,7 @@ class GrafoHerenciaUma:
     def buscar_mejor_match(self, prioridades):
         """
         Evalúa todas las Umas en el grafo basándose en las prioridades calculadas por app.py.
-        Devuelve una lista ordenada de tuplas (id_cuenta, puntaje_total).
+        Devuelve una lista ordenada de diccionarios con id, puntaje y rasgos.
         """
         resultados = []
         
@@ -64,10 +64,14 @@ class GrafoHerenciaUma:
                 
             # Solo guardamos las cuentas que aporten algún valor
             if puntaje > 0:
-                resultados.append((id_cuenta, puntaje))
+                resultados.append({
+                    "id": id_cuenta,
+                    "puntaje": puntaje,
+                    "rasgos": rasgos_uma  
+                })
                 
-        # Ordenamos la lista de mayor a menor puntaje
-        resultados.sort(key=lambda x: x[1], reverse=True)
+        # CORRECCIÓN 3 APLICADA AQUÍ: Ordenar usando la clave del diccionario
+        resultados.sort(key=lambda x: x['puntaje'], reverse=True)
         
         return resultados
 
@@ -150,7 +154,7 @@ if __name__ == "__main__":
         mi_grafo = construir_grafo_desde_api()
         print("Grafo construido exitosamente.\n")
         
-# Ejemplo de prueba con los IDs oficiales del juego
+        # Ejemplo de prueba con los IDs oficiales del juego
         prioridades_usuario = {
             "10": 10,   # Speed con peso máximo
             "120": 8    # Dirt con peso alto
@@ -166,11 +170,13 @@ if __name__ == "__main__":
             print("No se encontraron Umas que coincidan con las prioridades dadas.")
         else:
             for i in range(top_n):
-                id_uma, puntaje = mejores_umas[i]
+                # CORRECCIÓN 4 APLICADA AQUÍ: Extracción segura de datos para el diccionario
+                uma = mejores_umas[i]
+                id_uma = uma['id']
+                puntaje = uma['puntaje']
                 info = mi_grafo.nodos_umas.get(id_uma, {'entrenador': 'Desconocido', 'victorias_g1': 0})
                 print(f"#{i+1} | ID: {id_uma} | Entrenador: {info['entrenador']} | Victorias G1: {info['victorias_g1']}")
                 print(f"Puntaje de Afinidad: {puntaje}\n")
             
     except FileNotFoundError:
         print(f"Error: No se encontró el archivo '{archivo_bd}'. Asegúrate de que esté en la misma carpeta.")
-    

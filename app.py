@@ -12,18 +12,24 @@ app = Flask(__name__)
 
 # Carga la lista de Umamusumes
 try:
-    LISTA_PERSONAJES = datos_umamusumes.cargar_personajes('umamusume_personajes_completo (1).csv') 
+    LISTA_PERSONAJES = datos_umamusumes.cargar_personajes('umamusume_personajes_completo.csv') 
 except Exception as e:
     print(f"Advertencia: No se pudo cargar la base de personajes: {e}")
     LISTA_PERSONAJES = {}
 
-# Carga tu diccionario maestro de rasgos desde el archivo JSON
+# Carga tu diccionario maestro desde el archivo JSON
 try:
     with open('factores_ids.json', 'r', encoding='utf-8') as f:
         FACTORES_MAESTRO = json.load(f)
 except FileNotFoundError:
     print("Error crítico: No se encontró factores_ids.json.")
     FACTORES_MAESTRO = {}
+
+# ==========================================
+# Construir el grafo global al iniciar
+# ==========================================
+print("Descargando base de datos y construyendo el grafo global. Por favor espera...")
+GRAFO_GLOBAL = base_prototipo.construir_grafo_desde_api()
 
 
 def extraer_opciones_menu(ruta_csv):
@@ -149,6 +155,7 @@ def calcular():
     # 1. Validar la existencia de la Umamusume seleccionada
     uma_elegida = LISTA_PERSONAJES.get(uma_id)
     if not uma_elegida:
+        # CORRECCIÓN 1 APLICADA AQUÍ: Se restaura el error 404 original
         return jsonify({"error": "Umamusume no encontrada"}), 404
 
     prioridades_finales = {}
@@ -202,8 +209,8 @@ def calcular():
 
     # 4. EJECUCIÓN DEL MOTOR DE GRAFOS COMPARTIDO
     try:
-        mi_grafo = base_prototipo.construir_grafo_desde_api()
-        mejores_padres = mi_grafo.buscar_mejor_match(prioridades_finales)
+        # Usamos el grafo que ya se descargó al prender el servidor
+        mejores_padres = GRAFO_GLOBAL.buscar_mejor_match(prioridades_finales)
 
         return jsonify({
             "mensaje": "Análisis de pista y herencia completado exitosamente",
@@ -214,7 +221,8 @@ def calcular():
                 "length_m": length
             },
             "prioridades_calculadas": prioridades_finales,
-            "resultados": mejores_padres
+            "resultados": mejores_padres,
+            "factores_maestro": FACTORES_MAESTRO  # CORRECCIÓN 2 APLICADA AQUÍ
         })
     except Exception as e:
         return jsonify({"error": f"Fallo en la comunicación con el motor relacional: {str(e)}"}), 500
