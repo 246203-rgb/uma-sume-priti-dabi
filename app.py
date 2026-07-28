@@ -227,6 +227,7 @@ def calcular():
     except Exception as e:
         return jsonify({"error": f"Fallo en la comunicación con el motor relacional: {str(e)}"}), 500
 
+# ==========================================
 
 if __name__ == '__main__':
     app.run(debug=True)
