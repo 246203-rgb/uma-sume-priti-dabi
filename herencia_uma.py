@@ -44,35 +44,26 @@ class GrafoHerenciaUma:
         return self.aristas.get(id_uma, {})
     
     def buscar_mejor_match(self, prioridades):
-        """
-        Evalúa todas las Umas en el grafo basándose en las prioridades calculadas por app.py.
-        Devuelve una lista ordenada de diccionarios con id, puntaje y rasgos.
-        """
         resultados = []
-        
-        # Iteramos sobre todas las cuentas y sus estrellas registradas en el grafo
         for id_cuenta, rasgos_uma in self.aristas.items():
             puntaje = 0
-            
-            # Comparamos los rasgos de la Uma con las prioridades requeridas
             for rasgo_id, peso_requerido in prioridades.items():
-                # Obtenemos las estrellas que tiene la Uma en ese rasgo específico
                 estrellas_poseidas = rasgos_uma.get(rasgo_id, 0)
-                
-                # Multiplicamos las estrellas por la prioridad de la carrera
                 puntaje += estrellas_poseidas * peso_requerido
                 
-            # Solo guardamos las cuentas que aporten algún valor
             if puntaje > 0:
+                # --- NUEVO: Extraemos el nombre del entrenador del nodo ---
+                info_cuenta = self.nodos_umas.get(id_cuenta, {})
+                nombre_entrenador = info_cuenta.get('entrenador', 'Desconocido')
+                
                 resultados.append({
                     "id": id_cuenta,
+                    "entrenador": nombre_entrenador, # Enviamos el nombre al frontend
                     "puntaje": puntaje,
                     "rasgos": rasgos_uma  
                 })
                 
-        # CORRECCIÓN 3 APLICADA AQUÍ: Ordenar usando la clave del diccionario
         resultados.sort(key=lambda x: x['puntaje'], reverse=True)
-        
         return resultados
 
 def construir_grafo_desde_api(max_paginas=10):
@@ -84,9 +75,9 @@ def construir_grafo_desde_api(max_paginas=10):
         "X-API-Key": "uma_k_HhskxZ5V7SiM7xhgMeD6BwjGEt2VddXG7sm0yccEQuVH24er"
     }
     
-    # 2. Cargar nuestro diccionario maestro de factores
+    # 2. Cargar nuestro diccionario maestro de factores apuntando a data/
     try:
-        with open('factores_ids.json', 'r', encoding='utf-8') as f:
+        with open('data/factores_ids.json', 'r', encoding='utf-8') as f:
             diccionario_rasgos = json.load(f)
     except FileNotFoundError:
         print("Error: No se encontró el archivo 'factores_ids.json'. Asegúrate de crearlo en la misma carpeta.")
@@ -148,7 +139,8 @@ def construir_grafo_desde_api(max_paginas=10):
     return grafo
 
 if __name__ == "__main__":
-    archivo_bd = 'base_datos_uma_profesional.xlsx'
+    # Ruta corregida para pruebas locales
+    archivo_bd = 'data/data_umamoe.xlsx'
     
     try:
         mi_grafo = construir_grafo_desde_api()
@@ -170,7 +162,6 @@ if __name__ == "__main__":
             print("No se encontraron Umas que coincidan con las prioridades dadas.")
         else:
             for i in range(top_n):
-                # CORRECCIÓN 4 APLICADA AQUÍ: Extracción segura de datos para el diccionario
                 uma = mejores_umas[i]
                 id_uma = uma['id']
                 puntaje = uma['puntaje']

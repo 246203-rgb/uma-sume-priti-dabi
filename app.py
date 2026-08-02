@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import json
 import pandas as pd
-import base_prototipo      # Tu motor de grafos conectado a la API de uma.moe
-import datos_umamusumes    # Tu módulo que convierte el CSV de personajes en objetos
+import herencia_uma      # Tu motor de grafos conectado a la API de uma.moe
+import datos_uma    # Tu módulo que convierte el CSV de personajes en objetos
 
 app = Flask(__name__)
 
@@ -12,14 +12,14 @@ app = Flask(__name__)
 
 # Carga la lista de Umamusumes
 try:
-    LISTA_PERSONAJES = datos_umamusumes.cargar_personajes('umamusume_personajes_completo.csv') 
+    LISTA_PERSONAJES = datos_uma.cargar_personajes('data/data_gametora.csv') 
 except Exception as e:
     print(f"Advertencia: No se pudo cargar la base de personajes: {e}")
     LISTA_PERSONAJES = {}
 
 # Carga tu diccionario maestro desde el archivo JSON
 try:
-    with open('factores_ids.json', 'r', encoding='utf-8') as f:
+    with open('data/factores_ids.json', 'r', encoding='utf-8') as f:
         FACTORES_MAESTRO = json.load(f)
 except FileNotFoundError:
     print("Error crítico: No se encontró factores_ids.json.")
@@ -29,7 +29,7 @@ except FileNotFoundError:
 # Construir el grafo global al iniciar
 # ==========================================
 print("Descargando base de datos y construyendo el grafo global. Por favor espera...")
-GRAFO_GLOBAL = base_prototipo.construir_grafo_desde_api()
+GRAFO_GLOBAL = herencia_uma.construir_grafo_desde_api()
 
 
 def extraer_opciones_menu(ruta_csv):
@@ -124,7 +124,7 @@ def index():
 @app.route('/api/opciones_carrera', methods=['GET'])
 def obtener_opciones_carrera():
     """Ruta para que el Frontend cargue los menús desplegables dinámicamente."""
-    opciones = extraer_opciones_menu("Racetrack Base date(Hoja1).csv")
+    opciones = extraer_opciones_menu("data/data_racetrack.csv")
 
     lista_desplegable_umas = []
     for u_id, u_obj in LISTA_PERSONAJES.items():
