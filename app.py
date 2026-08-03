@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import json
+import os
 import pandas as pd
 import herencia_uma      # Tu motor de grafos conectado a la API de uma.moe
 import datos_uma    # Tu módulo que convierte el CSV de personajes en objetos
@@ -29,7 +30,11 @@ except FileNotFoundError:
 # Construir el grafo global al iniciar
 # ==========================================
 print("Descargando base de datos y construyendo el grafo global. Por favor espera...")
-GRAFO_GLOBAL = herencia_uma.construir_grafo_desde_api()
+if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    print("Descargando base de datos y construyendo el grafo global. Por favor espera...")
+    GRAFO_GLOBAL = herencia_uma.construir_grafo_desde_api(max_paginas=30, factor_penalizacion=5.0)
+else:
+    GRAFO_GLOBAL = None
 
 
 def extraer_opciones_menu(ruta_csv):
@@ -85,17 +90,17 @@ def calcular_prioridades_azules(length_type, length, estrategia):
         prioridades["10"] = 40  # Speed
         prioridades["30"] = 20  # Power
     elif length_type == 'Medium' or (length and 2000 <= length < 2500):
-        prioridades["10"] = 50  # Speed
+        prioridades["30"] = 50  # power
         prioridades["20"] = 40  # Stamina
-        prioridades["30"] = 30  # Power
+        prioridades["10"] = 30  # speed
     elif length_type == 'Mile' or (length and 1400 <= length < 2000):
         prioridades["10"] = 60  # Speed
         prioridades["30"] = 40  # Power
         prioridades["20"] = 20  # Stamina
     elif length_type == 'Sprint' or (length and length < 1400):
         prioridades["10"] = 70  # Máxima Speed
-        prioridades["30"] = 40  # Power
-        prioridades["50"] = 20  # Wisdom / Inteligencia
+        prioridades["50"] = 40  # wit
+        prioridades["30"] = 20  # Power
 
     # 2. Modificadores contextuales por Estrategia (Mecánica de posicionamiento)
     if estrategia == 'Front Runner':

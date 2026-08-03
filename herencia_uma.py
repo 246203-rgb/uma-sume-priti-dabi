@@ -43,30 +43,47 @@ class GrafoHerenciaUma:
         """
         return self.aristas.get(id_uma, {})
     
-    def buscar_mejor_match(self, prioridades):
+    def buscar_mejor_match(self, prioridades, factor_penalizacion=1.0):
+        """
+        Busca el mejor match sumando puntos por coincidencias y restando
+        por cada estrella de un rasgo no deseado.
+        
+        - factor_penalizacion: Multiplicador de puntos a restar por cada estrella basura.
+        """
         resultados = []
+        
         for id_cuenta, rasgos_uma in self.aristas.items():
             puntaje = 0
-            for rasgo_id, peso_requerido in prioridades.items():
-                estrellas_poseidas = rasgos_uma.get(rasgo_id, 0)
-                puntaje += estrellas_poseidas * peso_requerido
+            
+            # Iteramos sobre los rasgos que *realmente* tiene la Uma
+            for rasgo_id, estrellas_poseidas in rasgos_uma.items():
                 
+                if rasgo_id in prioridades:
+                    # Rasgo deseado: Multiplicamos las estrellas por el peso/prioridad
+                    peso_requerido = prioridades[rasgo_id]
+                    puntaje += estrellas_poseidas * peso_requerido
+                else:
+                    # Rasgo NO deseado: Restamos puntos por cada estrella basura
+                    puntaje -= (estrellas_poseidas * factor_penalizacion)
+                
+            # Solo consideramos a la Uma si, después de las penalizaciones, 
+            # sigue teniendo un puntaje positivo aceptable.
             if puntaje > 0:
-                # --- NUEVO: Extraemos el nombre del entrenador del nodo ---
                 info_cuenta = self.nodos_umas.get(id_cuenta, {})
                 nombre_entrenador = info_cuenta.get('entrenador', 'Desconocido')
                 
                 resultados.append({
                     "id": id_cuenta,
-                    "entrenador": nombre_entrenador, # Enviamos el nombre al frontend
-                    "puntaje": puntaje,
+                    "entrenador": nombre_entrenador, 
+                    "puntaje": round(puntaje, 2), # Redondeado por si usas decimales
                     "rasgos": rasgos_uma  
                 })
                 
+        # Ordenamos de mayor a menor puntaje final
         resultados.sort(key=lambda x: x['puntaje'], reverse=True)
         return resultados
 
-def construir_grafo_desde_api(max_paginas=10):
+def construir_grafo_desde_api(max_paginas, factor_penalizacion):
     url = "https://uma.moe/api/v3/search"
     print("Descargando la base de datos de herencias de Uma.moe...")
     
