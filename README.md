@@ -17,7 +17,7 @@ Un sistema avanzado de análisis y optimización de herencias para **Umamusume: 
 ## 📂 Estructura del Proyecto
 
 ```text
-PROGRMACION-II/
+PROGRAMACION-II/
 │
 ├── app.py                  # Servidor principal de Flask y rutas de la API
 ├── herencia_uma.py         # Motor de grafos y conexión con la API de uma.moe
