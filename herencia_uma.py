@@ -83,7 +83,7 @@ class GrafoHerenciaUma:
         resultados.sort(key=lambda x: x['puntaje'], reverse=True)
         return resultados
 
-def construir_grafo_desde_api(max_paginas, factor_penalizacion):
+def construir_grafo_desde_api(max_paginas):
     url = "https://uma.moe/api/v3/search"
     print("Descargando la base de datos de herencias de Uma.moe...")
     

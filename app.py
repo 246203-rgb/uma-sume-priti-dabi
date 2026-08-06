@@ -32,7 +32,7 @@ except FileNotFoundError:
 print("Descargando base de datos y construyendo el grafo global. Por favor espera...")
 if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     print("Descargando base de datos y construyendo el grafo global. Por favor espera...")
-    GRAFO_GLOBAL = herencia_uma.construir_grafo_desde_api(max_paginas=30, factor_penalizacion=5.0)
+    GRAFO_GLOBAL = herencia_uma.construir_grafo_desde_api(max_paginas=30)
 else:
     GRAFO_GLOBAL = None
 
@@ -215,7 +215,7 @@ def calcular():
     # 4. EJECUCIÓN DEL MOTOR DE GRAFOS COMPARTIDO
     try:
         # Usamos el grafo que ya se descargó al prender el servidor
-        mejores_padres = GRAFO_GLOBAL.buscar_mejor_match(prioridades_finales)
+        mejores_padres = GRAFO_GLOBAL.buscar_mejor_match(prioridades_finales, factor_penalizacion=5.0)
 
         return jsonify({
             "mensaje": "Análisis de pista y herencia completado exitosamente",
