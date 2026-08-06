@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- AQUÍ ESTÁ LA MAGIA: Esto evita que los servidores bloqueen las imágenes -->
     <meta name="referrer" content="no-referrer">
     
     <title>Calculadora de Herencia - Uma Musume</title>
@@ -14,6 +12,7 @@
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
@@ -29,6 +28,17 @@
             text-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
             font-weight: 800;
             letter-spacing: 1px;
+            margin-bottom: 5px !important;
+        }
+        .title-white {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .sub-title {
+            color: #90a4ae;
+            font-size: 1.05rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 40px;
         }
         .panel-control {
             background-color: rgba(15, 15, 15, 0.95); 
@@ -42,8 +52,10 @@
         }
         .form-section-title {
             font-size: 1.1rem;
-            color: #b0bec5;
+            color: #ffffff; 
             border-bottom: 1px solid #222;
+            border-left: 3px solid #00e676; 
+            padding-left: 12px;
             padding-bottom: 8px;
             margin-bottom: 20px;
             margin-top: 10px;
@@ -55,24 +67,37 @@
             color: #90a4ae;
             font-size: 0.9rem;
         }
+        .tooltip-icon {
+            color: #546e7a;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .tooltip-icon:hover {
+            color: #00e676;
+        }
+        
+        /* ESTILOS DE LOS MENÚS DESPLEGABLES */
         .form-select {
             background-color: #121212 !important;
             color: #eceff1 !important;
             border: 1px solid #333 !important;
             border-radius: 8px;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .form-select:focus {
+        
+        /* CLASE PARA MANTENER EL BRILLO VERDE UNA VEZ SELECCIONADO */
+        .form-select:focus, .form-select.is-valid-glow {
             border-color: #00e676 !important;
             box-shadow: 0 0 0 0.25rem rgba(0, 230, 118, 0.25) !important;
         }
         
-        /* ESTILOS DEL BUSCADOR SELECT2 EN NEGRO/VERDE */
         .select2-container--default .select2-selection--single {
             background-color: #121212;
             border: 1px solid #333;
             border-radius: 8px;
             height: 44px;
             padding: 6px;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #eceff1;
@@ -94,6 +119,14 @@
         .select2-results__option {
             color: #eceff1;
         }
+        
+        /* BRILLO PARA EL SELECT2 */
+        .select2-container--default.select2-container--focus .select2-selection--single,
+        .select2-selection--single.is-valid-glow {
+            border-color: #00e676 !important;
+            box-shadow: 0 0 0 0.25rem rgba(0, 230, 118, 0.25) !important;
+        }
+
         .uma-thumbnail {
             width: 30px;
             height: 30px;
@@ -145,22 +178,31 @@
 <body>
 
     <div class="panel-control">
-        <h1 class="text-center mb-5 main-title"><i class="fa-solid fa-dna"></i> Calc.uma</h1>
+        <h1 class="text-center main-title">
+            <i class="fa-solid fa-horse-head"></i> Calc<span class="title-white">.uma</span>
+        </h1>
+        <p class="text-center sub-title">Motor de inferencia genética y optimización de estadísticas</p>
         
         <form id="formulario-herencia">
             <div class="row g-4">
                 
                 <div class="col-12">
-                    <div class="form-section-title"><i class="fa-solid fa-horse-head"></i> Datos Base</div>
+                    <div class="form-section-title"><i class="fa-solid fa-horse-head me-2"></i> Datos Base</div>
                     <div class="row g-3">
                         <div class="col-md-8">
-                            <label for="uma_id" class="form-label">Selecciona tu Umamusume:</label>
+                            <label for="uma_id" class="form-label">
+                                Selecciona tu Umamusume
+                            </label>
                             <select id="uma_id" name="uma_id" class="form-select" required>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="estrategia" class="form-label">Estrategia a usar:</label>
+                            <label for="estrategia" class="form-label">
+                                Estrategia a usar
+                                <i class="fa-solid fa-circle-question tooltip-icon ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="El algoritmo ajustará el peso de Speed y Power basándose en la posición táctica elegida."></i>
+                            </label>
                             <select id="estrategia" class="form-select" required>
+                                <option value="">-- Selecciona Estrategia --</option>
                                 <option value="Front Runner">Front Runner (Nige)</option>
                                 <option value="Pace Chaser">Pace Chaser (Senkou)</option>
                                 <option value="Late Surger">Late Surger (Sashi)</option>
@@ -171,14 +213,17 @@
                 </div>
 
                 <div class="col-12 mt-4">
-                    <div class="form-section-title"><i class="fa-solid fa-flag-checkered"></i> Condiciones de Pista</div>
+                    <div class="form-section-title"><i class="fa-solid fa-flag-checkered me-2"></i> Condiciones de Pista</div>
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label for="racetrack" class="form-label">Hipódromo:</label>
                             <select id="racetrack" class="form-select" required></select>
                         </div>
                         <div class="col-md-4">
-                            <label for="terrain" class="form-label">Superficie (Terreno):</label>
+                            <label for="terrain" class="form-label">
+                                Superficie (Terreno)
+                                <i class="fa-solid fa-circle-question tooltip-icon ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Se buscarán herencias (Rosas) que cubran las deficiencias base de la Umamusume en este terreno."></i>
+                            </label>
                             <select id="terrain" class="form-select" required></select>
                         </div>
                         <div class="col-md-4">
@@ -189,14 +234,17 @@
                 </div>
 
                 <div class="col-12 mt-4">
-                    <div class="form-section-title"><i class="fa-solid fa-ruler"></i> Parámetros de Distancia</div>
+                    <div class="form-section-title"><i class="fa-solid fa-ruler me-2"></i> Parámetros de Distancia</div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="length_type" class="form-label">Tipo de Distancia:</label>
                             <select id="length_type" class="form-select" required></select>
                         </div>
                         <div class="col-md-6">
-                            <label for="length" class="form-label">Distancia Exacta (metros):</label>
+                            <label for="length" class="form-label">
+                                Distancia Exacta (metros)
+                                <i class="fa-solid fa-circle-question tooltip-icon ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Define si el algoritmo dará máxima prioridad a Stamina (carreras largas) o Speed (sprints)."></i>
+                            </label>
                             <select id="length" class="form-select" required disabled>
                                 <option value="">Primero elige el Tipo de Distancia</option>
                             </select>
@@ -225,15 +273,17 @@
         function renderizarUmaConImagen(uma) {
             if (!uma.id) { return uma.text; }
             var imgUrl = $(uma.element).data('img'); 
-            
-            // Si la imagen da error (no existe o sigue bloqueada), la ocultamos por completo
-            var $umaHtml = $(
-                `<span><img src="${imgUrl}" class="uma-thumbnail" onerror="this.style.display='none';" /> ${uma.text}</span>`
-            );
+            var $umaHtml = $(`<span><img src="${imgUrl}" class="uma-thumbnail" /> ${uma.text}</span>`);
+            $umaHtml.find('img').on('error', function() {
+                $(this).hide(); 
+            });
             return $umaHtml;
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
             try {
                 const respuesta = await fetch('/api/opciones_carrera');
                 const datos = await respuesta.json();
@@ -257,13 +307,9 @@
                     datos.umas.forEach(uma => {
                         const opt = document.createElement('option');
                         opt.value = uma.id; 
-                        
-                        // Generamos el ID correcto para las imágenes (ej. 100201)
                         const idVisual = uma.id + "01"; 
                         opt.textContent = `${uma.nombre} (ID: ${idVisual})`;
-                        
-                        // Retornamos a uma.moe ahora que tenemos el meta referrer configurado
-                        opt.setAttribute('data-img', `https://uma.moe/images/umamusume/icon_${idVisual}.png`);
+                        opt.setAttribute('data-img', `https://wsrv.nl/?url=uma.moe/images/umamusume/icon_${idVisual}.png`);
                         selectUma.appendChild(opt);
                     });
                 }
@@ -286,6 +332,25 @@
             } catch (error) {
                 console.error("Error al cargar opciones:", error);
             }
+
+            // --- LÓGICA DE VALIDACIÓN VISUAL (BRILLO VERDE) ---
+            document.querySelectorAll('.form-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    if (this.value !== "") {
+                        this.classList.add('is-valid-glow');
+                    } else {
+                        this.classList.remove('is-valid-glow');
+                    }
+                });
+            });
+
+            $('#uma_id').on('change', function() {
+                if ($(this).val() !== "") {
+                    $('.select2-selection--single').addClass('is-valid-glow');
+                } else {
+                    $('.select2-selection--single').removeClass('is-valid-glow');
+                }
+            });
         });
 
         document.getElementById('length_type').addEventListener('change', (e) => {
@@ -294,6 +359,7 @@
             if (!tipoSeleccionado) {
                 selectLength.innerHTML = '<option value="">Primero elige el Tipo de Distancia</option>';
                 selectLength.disabled = true;
+                selectLength.classList.remove('is-valid-glow');
                 return;
             }
             selectLength.disabled = false;
@@ -312,6 +378,7 @@
                 opt.textContent = d + "m";
                 selectLength.appendChild(opt);
             });
+            selectLength.classList.remove('is-valid-glow');
         });
 
         document.getElementById('formulario-herencia').addEventListener('submit', async (e) => {
