@@ -260,15 +260,91 @@
 
         <div id="seccion-resultados" class="mt-5 pt-4 border-top border-secondary">
             <h2 class="mb-4 text-center text-success"><i class="fa-solid fa-chart-pie"></i> Resultados del Análisis</h2>
+            
+            <div class="col-12 mb-4 text-center" id="btn-agregar-manual-container">
+                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalInyectarGrafo">
+                    <i class="fa-solid fa-flask"></i> Inyectar Padre Manual para Comparar
+                </button>
+            </div>
+
             <div id="contenedor-tarjetas" class="mb-5"></div>
             
             <h3 class="mt-5 text-center text-success"><i class="fa-solid fa-project-diagram"></i> Matriz de Afinidad (Red Descentralizada)</h3>
             <div id="red-grafos" style="width: 100%; height: 600px; border: 1px solid #333; border-radius: 12px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);" class="mb-5"></div>
         </div>
-    </div>
 
+    </div> <!-- ESTE DIV CIERRA EL PANEL-CONTROL PRINCIPAL -->
+
+<!-- === INICIO: MODAL PARA INYECTAR PADRE AL GRAFO ACTUAL === -->
+    <div class="modal fade" id="modalInyectarGrafo" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #121212; border: 1px solid #00d2ff;">
+          <div class="modal-header border-bottom border-secondary">
+            <h5 class="modal-title text-info"><i class="fa-solid fa-dna"></i> Añadir al Grafo de Resultados</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-light">
+            <form id="form-inyectar-grafo">
+                <div class="mb-3">
+                    <label class="form-label text-info">Nombre del Entrenador / Amigo</label>
+                    <input type="text" class="form-control bg-dark text-light border-secondary" id="inyectar_nombre" required placeholder="Ej. Amigo de Discord">
+                </div>
+                
+                <!-- SECCIÓN AZUL -->
+                <div class="form-section-title mt-4" style="border-left-color: #00e676; color: #00e676;"><i class="fa-solid fa-bolt"></i> Rasgos Azules (Stats)</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <select class="form-select bg-dark text-light border-secondary" id="inyectar_rasgo_azul">
+                            <option value="">-- Seleccionar Stat --</option>
+                            <option value="10">Speed</option>
+                            <option value="20">Stamina</option>
+                            <option value="30">Power</option>
+                            <option value="40">Guts</option>
+                            <option value="50">Intelligence</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <input type="number" class="form-control bg-dark text-light border-secondary" id="inyectar_estrellas_azul" min="1" max="9" placeholder="★ 1 a 9">
+                    </div>
+                </div>
+
+                <!-- SECCIÓN ROSA -->
+                <div class="form-section-title mt-4" style="border-left-color: #ff4081; color: #ff4081;"><i class="fa-solid fa-road"></i> Rasgos Rosas (Aptitud)</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <select class="form-select bg-dark text-light border-secondary" id="inyectar_rasgo_rosa">
+                            <option value="">-- Seleccionar Aptitud --</option>
+                            <option value="110">Turf</option>
+                            <option value="120">Dirt</option>
+                            <option value="210">Front Runner</option>
+                            <option value="220">Pace Chaser</option>
+                            <option value="230">Late Surger</option>
+                            <option value="240">End Closer</option>
+                            <option value="310">Sprint</option>
+                            <option value="320">Mile</option>
+                            <option value="330">Medium</option>
+                            <option value="340">Long</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <input type="number" class="form-control bg-dark text-light border-secondary" id="inyectar_estrellas_rosa" min="1" max="9" placeholder="★ 1 a 9">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-info w-100 mt-4 py-2 fw-bold text-dark"><i class="fa-solid fa-network-wired"></i> Inyectar y Calcular</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === FIN: MODAL === -->
     <script>
         let todasLasDistancias = [];
+        let nodosDataSet = null; 
+        let aristasDataSet = null;
+
+        let prioridadesGlobales = {};
+        let factoresGlobales = {};
 
         function renderizarUmaConImagen(uma) {
             if (!uma.id) { return uma.text; }
@@ -410,6 +486,10 @@
                     body: JSON.stringify(payload)
                 });
                 const resultadoJson = await respuesta.json();
+
+                prioridadesGlobales = resultadoJson.prioridades_calculadas || {};
+                factoresGlobales = resultadoJson.factores_maestro || {};
+                
                 const seccionResultados = document.getElementById('seccion-resultados');
                 const contenedorTarjetas = document.getElementById('contenedor-tarjetas');
                 
@@ -508,8 +588,9 @@
                     });
 
                     const contenedorGrafo = document.getElementById('red-grafos');
-                    const datosGrafo = { nodes: new vis.DataSet(nodosArray), edges: new vis.DataSet(aristasArray) };
-                    
+                    nodosDataSet = new vis.DataSet(nodosArray);
+                    aristasDataSet = new vis.DataSet(aristasArray);
+                    const datosGrafo = { nodes: nodosDataSet, edges: aristasDataSet };
                     const opcionesGrafo = {
                         physics: {
                             enabled: true,
@@ -534,6 +615,118 @@
                 boton.innerHTML = textoOriginal;
                 boton.disabled = false;
             }
+        });
+
+// =========================================================
+        // LÓGICA PARA INYECTAR NODOS MANUALES DIRECTO EN VIS-NETWORK
+        // =========================================================
+        document.getElementById('form-inyectar-grafo').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!nodosDataSet || !aristasDataSet) {
+                alert("Primero debes calcular una ruta principal para tener las prioridades del algoritmo.");
+                return;
+            }
+
+            const nombre = document.getElementById('inyectar_nombre').value;
+            
+            // Datos Azules
+            const selectAzul = document.getElementById('inyectar_rasgo_azul');
+            const idAzul = selectAzul.value;
+            const estrellasAzul = parseInt(document.getElementById('inyectar_estrellas_azul').value) || 0;
+            const nombreAzul = idAzul ? selectAzul.options[selectAzul.selectedIndex].text : '';
+
+            // Datos Rosas
+            const selectRosa = document.getElementById('inyectar_rasgo_rosa');
+            const idRosa = selectRosa.value;
+            const estrellasRosa = parseInt(document.getElementById('inyectar_estrellas_rosa').value) || 0;
+            const nombreRosa = idRosa ? selectRosa.options[selectRosa.selectedIndex].text : '';
+
+            if (!idAzul && !idRosa) {
+                alert("Debes seleccionar al menos un rasgo (Azul o Rosa).");
+                return;
+            }
+
+            // CALCULAR AFINIDAD (PUNTAJE) CON EL ALGORITMO GUARDADO
+            let puntajeCalculado = 0;
+            let etiquetasHTML = '';
+
+            const calcularYRenderizarRasgo = (idRasgo, nombreRasgo, estrellas, tipoColorBadge, edgeColor) => {
+                if (!idRasgo || estrellas === 0) return;
+
+                // Sumar al puntaje total basado en la prioridad del servidor
+                const pesoPrioridad = prioridadesGlobales[idRasgo] || 0;
+                const subtotal = estrellas * pesoPrioridad;
+                puntajeCalculado += subtotal;
+
+                // Crear etiqueta para la tarjeta
+                const textoEstrellas = '★'.repeat(estrellas);
+                etiquetasHTML += `<span class="badge rounded-pill ${tipoColorBadge} badge-stat me-1 mb-1">${nombreRasgo} <span class="text-warning">${textoEstrellas}</span></span>`;
+
+                // Inyectar en el Grafo
+                const idNodoRasgo = `rasgo_${idRasgo}`;
+                if (!nodosDataSet.get(idNodoRasgo)) {
+                    nodosDataSet.add({
+                        id: idNodoRasgo,
+                        label: factoresGlobales[idRasgo] || nombreRasgo,
+                        shape: 'dot',
+                        size: 25,
+                        color: { background: '#ff4081', border: '#f50057' },
+                        font: { color: '#ff80ab', size: 16, bold: true }
+                    });
+                }
+
+                aristasDataSet.add({
+                    from: idNodoPadre,
+                    to: idNodoRasgo,
+                    label: `★ ${estrellas} (${subtotal.toFixed(1)} pts)`,
+                    value: subtotal > 0 ? subtotal : 10, // Para que la arista sea visible aunque el peso sea 0
+                    font: { align: 'horizontal', color: edgeColor, size: 16, strokeWidth: 0 },
+                    color: { color: edgeColor, opacity: 0.9 }
+                });
+            };
+
+            const idNodoPadre = `manual_${Date.now()}`;
+
+            // Inyectar el nodo padre principal (Modo Sandbox)
+            nodosDataSet.add({
+                id: idNodoPadre,
+                label: `${nombre}\n(Manual)`,
+                shape: 'hexagon',
+                size: 22,
+                color: { background: '#00d2ff', border: '#0088aa' },
+                font: { color: '#ffffff', size: 12, bold: true }
+            });
+
+            // Procesar ambos rasgos
+            calcularYRenderizarRasgo(idAzul, nombreAzul, estrellasAzul, 'bg-success', '#00e676'); // Azul = Verde en tu CSS
+            calcularYRenderizarRasgo(idRosa, nombreRosa, estrellasRosa, 'bg-danger', '#ff4081'); // Rosa = Rojo en tu CSS
+
+            // INYECTAR LA TARJETA VISUAL EN EL HTML CON EL PUNTAJE REAL
+            const tarjetaHTML = `
+            <div class="resultado-card text-light mb-3 p-3 shadow-sm" style="border-left: 5px solid #00d2ff; border-right: 1px solid #00d2ff;">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-dark pb-2 mb-3">
+                    <h5 class="card-title mb-0" style="color: #00d2ff;">
+                        <strong><i class="fa-solid fa-user-ninja"></i> ${nombre} (Modo Sandbox)</strong> 
+                    </h5>
+                    <span class="fs-5 text-info" title="Calculado con las prioridades de la última búsqueda">
+                        <strong>Pts: ${Math.round(puntajeCalculado)}</strong>
+                    </span>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    ${etiquetasHTML}
+                </div>
+            </div>`;
+            
+            document.getElementById('contenedor-tarjetas').insertAdjacentHTML('afterbegin', tarjetaHTML);
+
+            // Actualizar etiqueta del nodo del grafo para incluir el puntaje calculado
+            nodosDataSet.update({ id: idNodoPadre, label: `${nombre}\n(Pts: ${Math.round(puntajeCalculado)})` });
+
+            // CERRAR MODAL
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalInyectarGrafo'));
+            modal.hide();
+            document.getElementById('form-inyectar-grafo').reset();
         });
     </script>
 </body>
